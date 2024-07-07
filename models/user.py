@@ -15,3 +15,12 @@ class User(db.Model):
     email = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)
     phone = db.Column(db.String)
+    
+
+class Organization(db.Model):
+    """This class is the organization class where users can belong"""
+    __tablename__ = 'organization'
+    orgId = db.Column(db.String, primary_key=True, unique=True)
+    name = db.Column(db.String, nullable=False)
+    description = db.Column(db.String, nullable=True)
+    users = db.relationship('User', backref='organizations', cascade='all, delete-orphan')
