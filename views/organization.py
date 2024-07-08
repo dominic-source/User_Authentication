@@ -22,8 +22,6 @@ def add_existing_user_to_organization(orgId=None):
         request_data = request.get_json()
         userId = request_data.get('userId')
         user = User.query.filter_by(userId=userId).first()
-        print("i got here 111111111111111111113333333333333")
-
         if user is None:
             return jsonify({
                 "status": "Bad request",
