@@ -13,39 +13,33 @@ class Config:
     POSTGRESQL_PORT = os.environ.get('POSTGRESQL_PORT')
     POSTGRESQL_DB = os.environ.get('POSTGRESQL_DB')
 
-    app = Flask(__name__)
-
-    app.config['SESSION_TYPE'] = 'sqlalchemy'
+    SESSION_TYPE = 'sqlalchemy'
 
     # Set up the secret key for signing sessions
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+    SECRET_KEY = os.environ.get('SECRET_KEY')
 
     # Setup MySQL server URI
-    app.config['SQLALCHEMY_DATABASE_URI'] = (
+    SQLALCHEMY_DATABASE_URI = (
         f'postgresql+psycopg2://{POSTGRESQL_USER}:{POSTGRESQL_PWD}@{POSTGRESQL_HOST}:{POSTGRESQL_PORT}/{POSTGRESQL_DB}'
     )
 
-class TestConfig(Config):
-    app = Flask(__name__)
+class TestConfig():
     TESTING = True
+    # Set up the secret key for signing sessions
+    SECRET_KEY = os.environ.get('SECRET_KEY')
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
-    # SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
 def create_app(test=False):
-
+    app = Flask(__name__)
     if test:
-        app = TestConfig.app
         app.config.from_object(TestConfig)
-        db.init_app(app)
     else:
-        app = Config.app
         app.config.from_object(Config)
-        db.init_app(app)
-        with app.app_context():
-            # Create tables
-            db.drop_all()
-            db.create_all()
+    db.init_app(app)
+    with app.app_context():
+        db.create_all()
 
     return app
 
