@@ -59,7 +59,6 @@ def login():
             "message": "Authentication failed",
             "statusCode": 401
         }), 401
-
     if bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
         expiration_time = datetime.now() + timedelta(hours=24)
         payload = { "userId": user.userId, "exp": expiration_time }
@@ -109,21 +108,22 @@ def register():
     try:
         user = User(userId=userId, firstName=firstName, lastName=lastName, email=email, password=hashed_password, phone=phone)
         orgId = str(uuid.uuid4())
-        organization = Organization(name=f"{firstName}'s Organization", orgId=orgId)
+        organization = Organization(name=f"{firstName}'s Organisation", orgId=orgId)
         organization.users.append(user)
-        db.session.add(user, organization)
+        db.session.add(user)
+        db.session.add(organization)
         db.session.commit()
         return jsonify({
             "status": "success",
             "message": "Registration successful",
             "data": {
             "accessToken": accessToken,
-            "user": {
-                "userId": userId,
-                "firstName": firstName,
-                        "lastName": lastName,
-                        "email": email,
-                        "phone": phone,
+                "user": {
+                    "userId": userId,
+                    "firstName": firstName,
+                    "lastName": lastName,
+                    "email": email,
+                    "phone": phone,
                 }
             }
         }), 201
