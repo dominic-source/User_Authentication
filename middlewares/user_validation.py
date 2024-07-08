@@ -2,7 +2,8 @@ from functools import wraps
 from flask import jsonify, request, session
 import jwt
 import os
-
+from models import User, Organization
+from app import db
 
 def protected_route(func: callable) -> callable:
     """This will protect every route that this decorator is applied to."""
@@ -74,32 +75,39 @@ def validate_user(func: callable) -> callable:
     @wraps(func)
     def wrapper(*args, **kwargs):
         register_args = request.get_json()
-        firstNane = register_args.get('firstName')
-        lastName = register_args.get('lastName')
-        email = register_args.get('email')
-        password = register_args.get('password')
+        errors = { "errors": [] }
+        obj = {
+            "firstName": register_args.get('firstName'),
+            "lastName": register_args.get('lastName'),
+            "email": register_args.get('email'),
+            "password": register_args.get('password'),
+        }
+        user = User.query.filter_by(email=obj['email']).first()
+        if user is not None:
+            errors["errors"].append(
+                {
+                    "field": "email",
+                    "message": "Email already exists"
+                }
+            )
         phone = register_args.get('phone')
-        for key, value in [firstNane, lastName, email, password].items():
+        for key, value in obj.items():
             if value is None or value == "" or not isinstance(value, str):
-                return jsonify(
-                        {
-                            "errors": [
-                                {
-                                    "field": key,
-                                    "message": "This field is required and must be a string"
-                                },
-                            ]
-                        }), 422
+                errors["errors"].append(
+                    {
+                        "field": key,
+                        "message": "This field is required and must be a string"
+                    }
+                )
  
         if phone is not None and not isinstance(phone, str):
-            return jsonify(
+            errors["errors"].append(
                 {
-                    "errors": [
-                        {
-                            "field": "phone",
-                            "message": "This field must be a string"
-                        },
-                    ]
-                }), 422
+                    "field": "phone",
+                    "message": "This field must be a string"
+                }
+            )
+        if errors["errors"]:
+            return jsonify(errors), 422
         return func(*args, **kwargs)
     return wrapper
