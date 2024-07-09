@@ -6,7 +6,7 @@ from models import User, Organization
 from app import db
 
 
-@app_views.route("/api/organisations/:orgId/users", methods=["POST"])
+@app_views.route("/api/organisations/<orgId>/users", methods=["POST"])
 @protected_route
 def add_existing_user_to_organization(orgId=None):
     """This is the add existing user to organization function"""
@@ -40,8 +40,8 @@ def add_existing_user_to_organization(orgId=None):
             return jsonify({
                 "status": "Bad request",
                 "message": "You are not in this organization",
-                "statusCode": 400
-            }), 400
+                "statusCode": 401
+            }), 401
         
         user.organizations.append(org_check)
         db.session.commit()
@@ -104,7 +104,7 @@ def create_organization():
         }), 400
 
 
-@app_views.route("/api/organisations/:orgId", methods=["GET"])
+@app_views.route("/api/organisations/<orgId>", methods=["GET"])
 @protected_route
 def organization(orgId=None):
     """This is the organization function"""
@@ -116,20 +116,21 @@ def organization(orgId=None):
             "message": "User not found",
             "statusCode": 404
         }), 404
-    organization = user.organizations.filter_by(orgId=orgId).first()
-    if organization is None:
+
+    organization = [org for org in user.organizations if org and org.orgId == orgId]
+    if not organization:
         return jsonify({
             "status": "Bad request",
-            "message": "Organization not found",
+            "message": "You are not in this organization or you did not create it",
             "statusCode": 404
         }), 404
     return jsonify({
         "status": "success",
         "message": "Organization found",
         "data": {
-            "orgId": organization.orgId,
-            "name": organization.name,
-            "description": organization.description
+            "orgId": organization[0].orgId,
+            "name": organization[0].name,
+            "description": organization[0].description
         }
     }), 200
 
