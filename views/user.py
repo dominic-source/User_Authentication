@@ -117,7 +117,7 @@ def register():
             "status": "success",
             "message": "Registration successful",
             "data": {
-            "accessToken": accessToken,
+                "accessToken": accessToken,
                 "user": {
                     "userId": userId,
                     "firstName": firstName,
