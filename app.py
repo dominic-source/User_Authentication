@@ -12,6 +12,7 @@ class Config:
     POSTGRESQL_HOST = os.environ.get('POSTGRESQL_HOST')
     POSTGRESQL_PORT = os.environ.get('POSTGRESQL_PORT')
     POSTGRESQL_DB = os.environ.get('POSTGRESQL_DB')
+    POSTGRESQL_URL = os.environ.get('POSTGRESQL_URL')
 
     SESSION_TYPE = 'sqlalchemy'
 
@@ -21,7 +22,7 @@ class Config:
     # Setup MySQL server URI
     SQLALCHEMY_DATABASE_URI = (
         f'postgresql+psycopg2://{POSTGRESQL_USER}:{POSTGRESQL_PWD}@{POSTGRESQL_HOST}:{POSTGRESQL_PORT}/{POSTGRESQL_DB}'
-    )
+    ) if POSTGRESQL_URL == 'None' else POSTGRESQL_URL
 
 class TestConfig():
     TESTING = True
