@@ -125,8 +125,8 @@ class UserRegistrationLoginTestCase(unittest.TestCase):
         self.assertTrue(any(error['message'] == 'Email already exists' for error in data['errors']))
 
 
-
 class UserOrganizationTestCase(unittest.TestCase):
+    
     def setUp(self):
         self.app = create_app(test=True)
         with self.app.app_context():
@@ -190,48 +190,122 @@ class UserOrganizationTestCase(unittest.TestCase):
         self.assertEqual(response3.status_code, 404)
         self.assertIn('The User was not found', data['message'])
 
-    # def test_organization_not_found(self):
-    #     # Assume a valid user session setup
-    #     response4 = self.client.post('/api/organisations/invalid_org_id/users', json={
-    #             "userId": "fakecredentials"
-    #         }, headers={"Authorization": f"Bearer {self.accessToken}"})
-    #     data = response4.get_json()        
-    #     self.assertEqual(response4.status_code, 404)
-    #     self.assertIn('Organization not found', data['message'])
+    def test_organization_not_found(self):
+        # Assume a valid user session setup
+        response4 = self.client.post('/api/organisations/invalid_org_id/users', json={
+                 'userId': self.userId
+            }, headers={"Authorization": f"Bearer {self.accessToken}"})
+        dat = response4.get_json()        
+        self.assertEqual(response4.status_code, 404)
+        self.assertIn('Organization not found', dat['message'])
 
-    # def test_adding_user_not_found(self):
-    #     # Assume a valid user and organization setup
-    #     response3 = self.client.post('/api/organisations/valid_org_id/users', json={
-    #         'userId': 'nvalid_user_id'}, headers={"Authorization": f"Bearer {self.accessToken}"})
-    #     data = response3.get_json()
-    #     self.assertEqual(response3.status_code, 404)
-    #     self.assertIn('The User was not found', data['message'])
+    def test_adding_user_not_found(self):
+        # Assume a valid user and organization setup
+        response3 = self.client.post('/api/organisations/valid_org_id/users', json={
+            'userId': 'nvalid_user_id'}, headers={"Authorization": f"Bearer {self.accessToken}"})
+        data = response3.get_json()
+        self.assertEqual(response3.status_code, 404)
+        self.assertIn('The User was not found', data['message'])
 
-    # def test_successful_addition(self):
-    #     # Assume a valid user, organization, and user to add setup
-    #     with self.app.app_context():
-    #         user = User.query.filter_by(firstName='John').first()
-    #         self.orgId = user.organizations[0].orgId
-    #         response3 = self.client.post(f'/api/organisations/{self.orgId}/users', json={
-    #             "userId": self.userId }, headers={"Authorization": f"Bearer {self.accessToken}"})
-    #     data = response3.get_json()
-    #     self.assertEqual(response3.status_code, 200)
-    #     self.assertIn('User added to organization successfully', data['message'])
+    def test_successful_addition(self):
+        # Assume a valid user, organization, and user to add setup
+        with self.app.app_context():
+            user = User.query.filter_by(firstName='John').first()
+            self.orgId = user.organizations[0].orgId
+            response3 = self.client.post(f'/api/organisations/{self.orgId}/users', json={
+                "userId": self.userId }, headers={"Authorization": f"Bearer {self.accessToken}"})
+        data = response3.get_json()
+        self.assertEqual(response3.status_code, 200)
+        self.assertIn('User added to organization successfully', data['message'])
 
-    # def test_unauthorized_access(self):
-    #     # Assume a user session setup that does not belong to the organization
-    #     with self.app.app_context():
-    #         organization = Organization(orgId=str(uuid.uuid4()), name='ortherOrganization', description='description')
-    #         db.session.add(organization)
-    #         db.session.commit()
-    #         url = f'/api/organisations/{organization.orgId}/users'
-    #         response2 = self.client.post(url,
-    #                                 json={"userId": self.userId},
-    #                                 headers={"Authorization": f"Bearer {self.accessToken}"})
-    #     data = response2.get_json()
-    #     self.assertEqual(response2.status_code, 404)
-    #     self.assertIn('You are not in this organization', data['message'])
+    def test_unauthorized_access(self):
+        # Assume a user session setup that does not belong to the organization
+        with self.app.app_context():
+            organization = Organization(orgId=str(uuid.uuid4()), name='ortherOrganization', description='description')
+            db.session.add(organization)
+            db.session.commit()
+            url = f'/api/organisations/{organization.orgId}/users'
+            response2 = self.client.post(url,
+                                    json={"userId": self.userId},
+                                    headers={"Authorization": f"Bearer {self.accessToken}"})
+        data = response2.get_json()
+        self.assertEqual(response2.status_code, 401)
+        self.assertIn('You are not in this organization', data['message'])
 
+
+class OrganizationAccessTestCase(unittest.TestCase):
+    def setUp(self):
+        """Set up test variables."""
+        self.app = create_app(test=True)
+        with self.app.app_context():
+            # Create tables
+            db.create_all()
+        from views import app_views
+        self.app.register_blueprint(app_views)
+        self.client = self.app.test_client()
+        
+        # First, register a user
+        response1 = self.client.post('/auth/register', json={
+            'firstName': 'John',
+            'lastName': 'Doe',
+            'email': 'john.doe@example.com',
+            'password': 'password123'
+        })
+        
+        # First, register a user
+        response2 = self.client.post('/auth/register', json={
+            'firstName': 'John2',
+            'lastName': 'Doe2',
+            'email': 'john.doe2@example.com',
+            'password': 'password123'
+        })
+        self.userId = response1.get_json()['data']['user']['userId']
+        self.userId2 = response2.get_json()['data']['user']['userId']
+
+        # Then, try to log in
+        resp = self.client.post('/auth/login', json={
+            'email': 'john.doe@example.com',
+            'password': 'password123'
+        })
+        
+        resp2 = self.client.post('/auth/login', json={
+            'email': 'john.doe2@example.com',
+            'password': 'password123'
+        })
+        data = resp.get_json()
+        self.accessToken= data['data']['accessToken']
+        data2 = resp2.get_json()
+        self.accessToken2 = data2['data']['accessToken']
+
+    def test_user_cannot_access_unassigned_organization(self):
+        """Test API can prevent a user from accessing an organization they don't belong to."""
+        resp = self.client.post('/api/organisations', json={
+            'name': 'Johns Companies'
+        }, headers={'Authorization': f'Bearer {self.accessToken}'})
+        self.org1 = resp.get_json()['data']
+        response = self.client.get(f'/api/organisations/{self.org1["orgId"]}', headers={'Authorization': f'Bearer {self.accessToken2}'})
+        data = response.get_json()
+        
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("You are not in this organization or you did not create it", data['message'])
+
+    def test_user_can_access_assigned_organization(self):
+        """Test API can prevent a user from accessing an organization they don't belong to."""
+        resp = self.client.post('/api/organisations', json={
+            'name': 'Johns Companies'
+        }, headers={'Authorization': f'Bearer {self.accessToken}'})
+        self.org1 = resp.get_json()['data']
+        response = self.client.get(f'/api/organisations/{self.org1["orgId"]}', headers={'Authorization': f'Bearer {self.accessToken}'})
+        data = response.get_json()
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual('Johns Companies', data['data']['name'])
+
+    def tearDown(self):
+        """Tear down all initialized variables."""
+        with self.app.app_context():
+            db.session.remove()
+            db.drop_all()
 
 if __name__ == '__main__':
     unittest.main()
