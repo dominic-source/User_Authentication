@@ -5,6 +5,7 @@ import os
 from database import db
 
 load_dotenv()
+PORT = os.environ.get('PORT')
 
 class Config: 
     POSTGRESQL_USER = os.environ.get('POSTGRESQL_USER')
@@ -19,10 +20,12 @@ class Config:
     # Set up the secret key for signing sessions
     SECRET_KEY = os.environ.get('SECRET_KEY')
 
-    # Setup MySQL server URI
     SQLALCHEMY_DATABASE_URI = (
         f'postgresql+psycopg2://{POSTGRESQL_USER}:{POSTGRESQL_PWD}@{POSTGRESQL_HOST}:{POSTGRESQL_PORT}/{POSTGRESQL_DB}'
     ) if POSTGRESQL_URL == 'None' else POSTGRESQL_URL
+
+    # Setup MySQL server URI
+    # SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://SG-same-weaver-228-5724-pgsql-master.servers.mongodirector.com:5432/authdatabase"
 
 class TestConfig():
     TESTING = True
@@ -54,4 +57,4 @@ if __name__ == "__main__":
 
     # Run the Flask app using Uvicorn
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    uvicorn.run(app, host="0.0.0.0", port=int(PORT))
