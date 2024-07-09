@@ -47,6 +47,9 @@ python app.py
 ```
 4. The application will be available at `http://localhost:5000`.
 
+5. To run unittest
+`python -m unittest tests.auth_spec`
+
 ## Usage
 
 - **Register a New User**: Navigate to `/register` to create a new user account.
