@@ -14,7 +14,7 @@ def helloworld():
     return "Hello, World!"
 
 
-@app_views.route("/api/users/:id", methods=["GET"])
+@app_views.route("/api/users/<id>", methods=["GET"])
 @protected_route
 def user(id=None):
     """This is the user function"""
