@@ -41,6 +41,9 @@ cd user-authentication-app
 ```bash
     sudo service postgresql start
 ```
+*Note: Ensure that postgresql is installed on your system*
+*Note: Ensure you setup the username, password and other permissions for the user in the postgresql*
+
 3. Run the app
 ```bash
 python app.py
