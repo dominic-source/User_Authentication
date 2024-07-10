@@ -1,4 +1,4 @@
-from app import db
+from database import db
 
 # Association table for the many-to-many relationship
 user_organization = db.Table('user_organization',

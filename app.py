@@ -3,6 +3,7 @@ from flask import Flask
 from dotenv import load_dotenv
 import os
 from database import db
+# from flask_migrate import Migrate
 
 load_dotenv()
 PORT = os.environ.get('PORT')
@@ -21,7 +22,7 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY')
 
     SQLALCHEMY_DATABASE_URI = (
-        f'postgresql+psycopg2://{POSTGRESQL_USER}:{POSTGRESQL_PWD}@{POSTGRESQL_HOST}:{POSTGRESQL_PORT}/{POSTGRESQL_DB}'
+        f'postgresql://{POSTGRESQL_USER}:{POSTGRESQL_PWD}@{POSTGRESQL_HOST}:{POSTGRESQL_PORT}/{POSTGRESQL_DB}'
     ) if POSTGRESQL_URL == 'None' else POSTGRESQL_URL
 
     # Setup MySQL server URI
@@ -42,6 +43,8 @@ def create_app(test=False):
     else:
         app.config.from_object(Config)
     db.init_app(app)
+    from models import User
+
     with app.app_context():
         db.create_all()
 

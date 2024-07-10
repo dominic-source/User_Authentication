@@ -3,7 +3,7 @@ from middlewares.user_validation import protected_route, validate_user
 from views import app_views
 from flask import request, jsonify, session
 from models import User, Organization
-from app import db
+from database import db
 import jwt
 import bcrypt
 from datetime import datetime, timedelta
@@ -86,7 +86,7 @@ def login():
 
 
 @app_views.route("/auth/register", methods=["POST"])
-@validate_user
+# @validate_user
 def register():
     """This is the register function"""
     register_data = request.get_json()
@@ -128,6 +128,7 @@ def register():
             }
         }), 201
     except Exception as e:
+        print(e)
         return jsonify({
             "status": "Bad request",
             "message": "Registration unsuccessful",

@@ -3,7 +3,7 @@ from middlewares.user_validation import protected_route
 from views import app_views
 from flask import request, jsonify, session
 from models import User, Organization
-from app import db
+from database import db
 
 
 @app_views.route("/api/organisations/<orgId>/users", methods=["POST"])
